@@ -1,13 +1,13 @@
 # DS570_Project
 Özyeğin Univ. 2025-2026 Spring DS570 Term Project by Şakir Buğra Aksu. An end-to-end data science pipeline including data processing, visualization, interactive dashboards, predictive ML modeling &amp; evaluation, Git version control, and Docker.
 
-# AI-Assisted Signal Regeneration in Critical CAN Bus Interruptions
-# Project Overview
+## AI-Assisted Signal Regeneration in Critical CAN Bus Interruptions
+### Project Overview
 In modern in-vehicle communication networks (CAN Bus, CAN-FD), the interruption of signals from critical sensors due to hardware failure, short circuits, or cyber interventions (spoofing) directly endangers driving safety.
 
 The main objective of this project is to use correlated signals on the network (such as Wheel Speeds, Engine RPM, Throttle Position, etc.) to regenerate the lost signal in real-time using machine learning algorithms during a critical scenario where the main Vehicle_Speed signal from the primary speed sensor is interrupted.
 
-# Data Set & Privacy Policy (Anonymization & NDA Compliance)
+### Data Set & Privacy Policy (Anonymization & NDA Compliance)
 The dataset used in this project is based on real CAN Bus logs obtained from real-world E/E (Electrical/Electronic) system architecture field tests. However, to protect trade secrets and strictly comply with NDA (Non-Disclosure Agreement) rules, rigorous anonymization (masking) procedures have been applied to the dataset:
 
 DBC Independence: No real CAN IDs or proprietary message/signal names were used. Column names have been generalized to formats like Signal_1, Signal_2, and Target_Velocity.
