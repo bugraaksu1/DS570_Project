@@ -19,7 +19,7 @@ To conceal physical hardware characteristics, all physical values have been scal
 ### Automated Data Ingestion (Runtime): 
 The dataset is not stored as a local file. Instead, it is automatically fetched without authentication from a public cloud URL (GitHub Raw) via Pandas when the application boots up on Docker.
 
-## 📅Project Planned Timeline
+## Project Planned Timeline
 The development of this project is structured over a 4-week agile sprint:
 ### Week 1: Data Preparation & Ingestion Pipeline
 Data collection from CAN Bus logs.
