@@ -1,11 +1,18 @@
 # DS570_Project
 Özyeğin Univ. 2025-2026 Spring DS570 Term Project by Şakir Buğra Aksu. An end-to-end data science pipeline including data processing, visualization, interactive dashboards, predictive ML modeling &amp; evaluation, Git version control, and Docker.
 
-### Data Architecture & Future Roadmap
+# AI-Assisted Signal Regeneration in Critical CAN Bus Interruptions
+# Project Overview
+In modern in-vehicle communication networks (CAN Bus, CAN-FD), the interruption of signals from critical sensors due to hardware failure, short circuits, or cyber interventions (spoofing) directly endangers driving safety.
 
-This project implements an end-to-end machine learning pipeline to dynamically forecast gold prices. Currently, the primary data ingestion module utilizes the `yfinance` library to automatically fetch historical and near real-time market data (e.g., Open, Close, High, Low, Volume) without requiring user authentication or manual downloads. This ensures seamless reproducibility and rapid containerized deployment.
+The main objective of this project is to use correlated signals on the network (such as Wheel Speeds, Engine RPM, Throttle Position, etc.) to regenerate the lost signal in real-time using machine learning algorithms during a critical scenario where the main Vehicle_Speed signal from the primary speed sensor is interrupted.
 
-**Model Extensibility and Feature Integration**
-The current architecture is intentionally designed to be modular and highly extensible. While the baseline model relies on core financial metrics and technical indicators derived from Yahoo Finance, the data pipeline can be easily scaled. 
+# Data Set & Privacy Policy (Anonymization & NDA Compliance)
+The dataset used in this project is based on real CAN Bus logs obtained from real-world E/E (Electrical/Electronic) system architecture field tests. However, to protect trade secrets and strictly comply with NDA (Non-Disclosure Agreement) rules, rigorous anonymization (masking) procedures have been applied to the dataset:
 
-Future iterations of this project plan to integrate additional data ingestion pipelines from alternative, non-Yahoo Finance platforms. By incorporating external APIs (such as FRED for macroeconomic indicators or alternative data sources for global market sentiment), we can introduce diverse input variables into the model. These external datasets will be engineered into advanced features—such as inflation rates, central bank interest rate decisions, or geopolitical risk indices—to further enhance the model's predictive accuracy, robustness, and ability to capture complex market dynamics.
+DBC Independence: No real CAN IDs or proprietary message/signal names were used. Column names have been generalized to formats like Signal_1, Signal_2, and Target_Velocity.
+
+Mathematical Normalization: To conceal physical hardware characteristics, all physical values have been scaled between 0 and 1 using MinMaxScaler.
+
+Automated Data Ingestion (Runtime): The dataset is not stored as a local file. Instead, it is automatically fetched without authentication from a public cloud URL (GitHub Raw) via Pandas when the application boots up on Docker.
+
