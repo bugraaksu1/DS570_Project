@@ -33,22 +33,22 @@ Mathematical Normalization: To conceal physical hardware characteristics, all ph
 
 Automated Data Ingestion (Runtime): The dataset is not stored as a local file. Instead, it is automatically fetched without authentication from a public cloud URL (GitHub Raw) via Pandas when the application boots up on Docker.
 
-##Project Planned Timeline
+## 📅Project Planned Timeline
 The development of this project is structured over a 4-week agile sprint:
-###Week 1: Data Preparation & Ingestion Pipeline
+### Week 1: Data Preparation & Ingestion Pipeline
 Data collection from CAN Bus logs.
 Data preprocessing, cleaning, and strict anonymization (masking).
 Creating the final dataset and uploading it to a public GitHub repository for automated runtime ingestion.
 
-###Week 2: Model Training & Evaluation
+### Week 2: Model Training & Evaluation
 Establishing the baseline model (Zero-Order Hold).
 Training advanced machine learning models (Linear Regression, Tree-Based Algorithms).
 Performance measurement and hyperparameter tuning.
 
-###Week 3: Interactive Dashboard Development
+### Week 3: Interactive Dashboard Development
 Building the user interface using Streamlit.
 Integrating the trained models to visualize signal loss and real-time regeneration.
 
-###Week 4: Deployment & Containerization
+### Week 4: Deployment & Containerization
 Writing the Dockerfile and requirements.txt.
 Containerizing the entire application for seamless, dependency-free execution in any environment.
