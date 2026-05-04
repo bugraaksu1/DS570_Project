@@ -10,13 +10,14 @@ The main objective of this project is to use correlated signals on the network (
 ### Data Set & Privacy Policy (Anonymization & NDA Compliance)
 The dataset used in this project is based on real CAN Bus logs obtained from real-world E/E (Electrical/Electronic) system architecture field tests. However, to protect trade secrets and strictly comply with NDA (Non-Disclosure Agreement) rules, rigorous anonymization (masking) procedures have been applied to the dataset:
 
-DBC Independence: No real CAN IDs or proprietary message/signal names were used. Column names have been generalized to formats like Signal_1, Signal_2, and Target_Velocity.
+### DBC Independence: 
+No real CAN IDs or proprietary message/signal names were used. Column names have been generalized to formats like Signal_1, Signal_2, and Target_Velocity.
 
-Mathematical Normalization: To conceal physical hardware characteristics, all physical values have been scaled between 0 and 1 using MinMaxScaler.
+### Mathematical Normalization: 
+To conceal physical hardware characteristics, all physical values have been scaled between 0 and 1 using MinMaxScaler.
 
-Automated Data Ingestion (Runtime): The dataset is not stored as a local file. Instead, it is automatically fetched without authentication from a public cloud URL (GitHub Raw) via Pandas when the application boots up on Docker.
-
-İşte planladığın zaman çizelgesinin (timeline) İngilizceye çevrilmiş ve profesyonel README.md formatına uyarlanmış hali. Metnin sonuna eklenmiş olarak aşağıda bulabilirsin. Doğrudan kopyalayıp kullanabilirsin:
+### Automated Data Ingestion (Runtime): 
+The dataset is not stored as a local file. Instead, it is automatically fetched without authentication from a public cloud URL (GitHub Raw) via Pandas when the application boots up on Docker.
 
 ## 🏎️ AI-Assisted Signal Regeneration in Critical CAN Bus Interruptions
 ## 📌 Project Overview
