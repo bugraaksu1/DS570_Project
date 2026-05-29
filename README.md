@@ -44,8 +44,6 @@ Containerizing the entire application for seamless, dependency-free execution in
 
 #### 1. Clone the Repository
 Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project to your local machine, and navigate into the root directory:
-
-    ```bash
     git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
     cd DS570_Project
 
