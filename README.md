@@ -56,7 +56,7 @@ Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project 
     docker run -p 8501:8501 vehicle-speed-dashboard
 
 #### 4. Accessing the Live Dashboard
-    As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
+As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
     
     👉 http://localhost:8501
 
