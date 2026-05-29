@@ -40,7 +40,7 @@ Writing the Dockerfile and requirements.txt.
 Containerizing the entire application for seamless, dependency-free execution in any environment.
 
 ### Deployment & Local Setup Guide via Docker
-### 🛠️ Step-by-Step Execution Instructions
+###  Step-by-Step Execution Instructions
 
 #### 1. Clone the Repository
 Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project to your local machine, and navigate into the root directory:
