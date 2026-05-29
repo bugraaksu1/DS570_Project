@@ -50,14 +50,14 @@ Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project 
     cd DS570_Project
 
 #### 2. Build the Docker Image
-docker build -t vehicle-speed-dashboard .
+    docker build -t vehicle-speed-dashboard .
 
 #### 3. Running the Container
-docker run -p 8501:8501 vehicle-speed-dashboard
+    docker run -p 8501:8501 vehicle-speed-dashboard
 
 #### 4. Accessing the Live Dashboard
-As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
-
-👉 http://localhost:8501
+    As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
+    
+    👉 http://localhost:8501
 
 
