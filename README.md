@@ -58,6 +58,6 @@ Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project 
 #### 4. Accessing the Live Dashboard
 As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
     
-    👉 http://localhost:8501
+    http://localhost:8501
 
 
