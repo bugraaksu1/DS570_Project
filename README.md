@@ -38,3 +38,26 @@ Integrating the trained models to visualize signal loss and real-time regenerati
 ### Week 4: Deployment & Containerization
 Writing the Dockerfile and requirements.txt.
 Containerizing the entire application for seamless, dependency-free execution in any environment.
+
+### Deployment & Local Setup Guide via Docker
+###  Step-by-Step Execution Instructions
+
+#### 1. Clone the Repository
+Open your terminal (Git Bash, PowerShell, or Command Prompt), clone the project to your local machine, and navigate into the root directory:
+
+    git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
+    
+    cd DS570_Project
+
+#### 2. Build the Docker Image
+    docker build -t vehicle-speed-dashboard .
+
+#### 3. Running the Container
+    docker run -p 8501:8501 vehicle-speed-dashboard
+
+#### 4. Accessing the Live Dashboard
+As soon as the container initializes, Streamlit's network outputs will appear in your terminal. Open any web browser (Chrome, Edge, Safari, Firefox, etc.) and head over to the following address to test the real-time telemetry model inference:
+    
+    http://localhost:8501
+
+
