@@ -72,15 +72,15 @@ This system is completely containerized via Docker to guarantee absolute environ
 #### 1. Clone the Repository
 Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project workspace:
 
-  git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
+   git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
   
-  cd DS570_Project
+   cd DS570_Project
 
 #### 2. Clone the Repository
-  docker build -t vehicle-speed-dashboard .
+   docker build -t vehicle-speed-dashboard .
 
 #### 3. Run the Container
     docker run -p 8501:8501 vehicle-speed-dashboard
 
 #### 4. Access the Live Dashboard
-  http://localhost:8501
+    http://localhost:8501
