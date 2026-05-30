@@ -35,7 +35,7 @@ The pipeline evaluates two distinct modeling classes to balance computational la
 Based on empirical tree-based splits, the system identifies the dominant cross-signal correlations natively:
 * **`Signal_X8`:** Accountable for **83.82%** of the total predictive weight.
 * **`Signal_X7`:** Accountable for **16.17%** of the total predictive weight.
-* The remaining channels (`Signal_X1` to `Signal_X6`, `Signal_X9` to `Signal_X11`) supply residual gürültü filtering, confirming that the vehicle speed signature is highly localized within two primary network channels.
+* The remaining channels (`Signal_X1` to `Signal_X6`, `Signal_X9` to `Signal_X11`) supply residual noise filtering, confirming that the vehicle speed signature is highly localized within two primary network channels.
 
 ---
 
