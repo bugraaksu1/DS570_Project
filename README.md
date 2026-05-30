@@ -7,7 +7,7 @@ An end-to-end data science and MLOps pipeline encompassing data processing, feat
 
 ---
 
-## 📌 Project Overview & Problem Statement
+## Project Overview & Problem Statement
 In modern automotive Electrical/Electronic (E/E) architectures, critical sensor signals transmitted over vehicle networks (CAN Bus, CAN-FD, LIN) are vulnerable to temporary or permanent interruptions. These dropouts can occur due to physical hardware failures, wiring harness short circuits, or malicious cyber interventions such as spoofing and Denial-of-Service (DoS) attacks.
 
 When a primary sensor—such as the vehicle speed sensor—fails, dependent ADAS modules and chassis control units lose critical telemetry, compromising passenger safety. 
@@ -16,7 +16,7 @@ When a primary sensor—such as the vehicle speed sensor—fails, dependent ADAS
 
 ---
 
-## 📊 Dataset & Proprietary Safety (NDA Compliance)
+## Dataset & Proprietary Safety (NDA Compliance)
 The underlying data is derived from actual CAN Bus logs captured during real-world vehicle field tests. To strictly adhere to corporate Non-Disclosure Agreements (NDAs) and safeguard intellectual property, rigorous sanitization and anonymization protocols were enforced:
 
 * **Signal Masking (DBC Independence):** Proprietary CAN IDs, message frames, and database signal names are entirely removed. Features are generalized into abstract representations spanning `Signal_X1` through `Signal_X11`, with the target velocity mapped as `Signal_Y`.
@@ -25,13 +25,13 @@ The underlying data is derived from actual CAN Bus logs captured during real-wor
 
 ---
 
-## 🛠️ Methodology & Model Architecture
+## Methodology & Model Architecture
 The pipeline evaluates two distinct modeling classes to balance computational latency against predictive accuracy:
 
 1. **Baseline Model (Linear Regression):** A low-compute, deterministic model used to establish a predictive floor. It serves as a lightweight benchmark for linear cross-signal relationships.
 2. **Advanced Model (Random Forest Regressor):** An ensemble tree-based architecture designed to capture high-frequency, non-linear transient states common in aggressive vehicle dynamics.
 
-### 📐 Feature Importance & Determinants Profile
+### Feature Importance & Determinants Profile
 Based on empirical tree-based splits, the system identifies the dominant cross-signal correlations natively:
 * **`Signal_X8`:** Accountable for **83.82%** of the total predictive weight.
 * **`Signal_X7`:** Accountable for **16.17%** of the total predictive weight.
@@ -39,7 +39,7 @@ Based on empirical tree-based splits, the system identifies the dominant cross-s
 
 ---
 
-## 📈 Model Performance & Evaluation Results
+## Model Performance & Evaluation Results
 The estimators achieved the following cross-validation diagnostics under baseline telemetry configurations:
 
 | Model Architecture | $R^2$ Score | Mean Absolute Error (MAE) | Root Mean Squared Error (RMSE) |
@@ -47,13 +47,13 @@ The estimators achieved the following cross-validation diagnostics under baselin
 | **Baseline (Linear Regression)** | `0.842` | `3.12 km/h` | `4.05 km/h` |
 | **Advanced (Random Forest)** | **`0.968`** | **`1.08 km/h`** | **`1.42 km/h`** |
 
-### 🎯 Curve Fitting & Residual Analysis
+### Curve Fitting & Residual Analysis
 * **Convergence:** The Random Forest model demonstrates tight curve fitting against the actual ground truth, capturing rapid accelerations and deceleration transients seamlessly.
 * **Error Distribution:** Residual diagnostics indicate that the estimation errors are normally distributed and strictly clustered around the zero-error line, validating the absence of systematic model bias.
 
 ---
 
-## ⚠️ Identified Weaknesses & Future Improvements
+## Identified Weaknesses & Future Improvements
 In alignment with rigorous engineering practices, the following boundaries and architectural bottlenecks have been identified for future optimization loops:
 
 * **Temporal Blindness:** The current static regression models evaluate each telemetry frame independently. They lack sequential memory, making them susceptible to error propagation during prolonged signal blackouts.
@@ -63,14 +63,23 @@ In alignment with rigorous engineering practices, the following boundaries and a
 
 ---
 
-## 🐳 Deployment & Local Setup Guide via Docker
+## Deployment & Local Setup Guide via Docker
 
 This system is completely containerized via Docker to guarantee absolute environment replication across different operating systems, eliminating local python configuration dependencies.
 
-### 🛠️ Step-by-Step Execution Instructions
+### Step-by-Step Execution Instructions
 
 #### 1. Clone the Repository
 Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project workspace:
-```bash
-git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
-cd DS570_Project
+
+ git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
+ cd DS570_Project
+
+#### 2. Clone the Repository
+ docker build -t vehicle-speed-dashboard .
+
+#### 3. Run the Container
+   docker run -p 8501:8501 vehicle-speed-dashboard
+
+#### 4. Access the Live Dashboard
+ http://localhost:8501
