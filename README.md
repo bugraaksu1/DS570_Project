@@ -76,7 +76,7 @@ Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project w
   
     cd DS570_Project
 
-#### 2. Clone the Repository
+#### 2. Build the Docker Image
     docker build -t vehicle-speed-dashboard .
 
 #### 3. Run the Container
