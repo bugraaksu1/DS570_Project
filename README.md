@@ -121,7 +121,6 @@ docker build -t vehicle-speed-dashboard .
 
 ```
 
-*(Ensure the trailing dot `.` is included so Docker detects the local context).*
 
 #### 3. Run the Container
 
