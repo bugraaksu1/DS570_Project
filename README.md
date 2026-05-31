@@ -144,6 +144,3 @@ Once initialized, open any modern web browser and navigate to:
 
 To safely terminate the container instance, return to your terminal window and press **`Ctrl + C`**.
 
-```
-
-```
