@@ -135,12 +135,12 @@ docker run -p 8501:8501 vehicle-speed-dashboard
 #### 4. Access the Live Dashboard
 
 Once initialized, open any modern web browser and navigate to:
-👉 **[http://localhost:8501](https://www.google.com/search?q=http://localhost:8501)**
+**[http://localhost:8501](https://www.google.com/search?q=http://localhost:8501)**
 
 * **Tab 1 (Exploratory Data Analysis):** Real-time data profiling, feature distributions, and Random Forest feature importance charts.
 * **Tab 2 (Real-Time Model Inference):** Interactive sliders to manipulate 11 CAN Bus signals concurrently, featuring dual-curve fitting tracking and live residual error tracking.
 
-### 🛑 Stopping the Simulation
+### Stopping the Simulation
 
 To safely terminate the container instance, return to your terminal window and press **`Ctrl + C`**.
 
