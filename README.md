@@ -90,7 +90,7 @@ This system is completely containerized via Docker to guarantee absolute environ
 Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project workspace:
 
 ```bash
-git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
+git clone https://github.com/bugraaksu1/DS570_Project.git
 cd DS570_Project
 
 ```
