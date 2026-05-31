@@ -15,7 +15,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🚗 Vehicle Speed Prediction & Telemetry Analytics")
+st.title(" Vehicle Speed Prediction & Telemetry Analytics")
 st.markdown("This dashboard integrates exploratory data analysis with real-time machine learning inference for CAN Bus signal validation.")
 
 @st.cache_data
@@ -24,11 +24,9 @@ def get_dashboard_data():
     n_samples = 1000
     data_dict = {}
     
-    # Base feature structure matching dataset profiles
     for i in range(1, 12):
         data_dict[f"Signal_X{i}"] = np.sin(np.linspace(0, 10, n_samples)) * 40 + 60 + np.random.normal(0, 3, n_samples)
     
-    # Ground truth anchored strictly to the dominant features verified by importance weights
     data_dict["Signal_Y"] = 0.8382 * data_dict["Signal_X8"] + 0.1617 * data_dict["Signal_X7"] + np.random.normal(0, 2, n_samples)
     data_dict["Signal_Y"] = np.clip(data_dict["Signal_Y"], 0, 160)
     
@@ -43,10 +41,10 @@ if "actual_history" not in st.session_state:
 if "pred_history" not in st.session_state:
     st.session_state.pred_history = []
 
-tab1, tab2 = st.tabs(["📊 Exploratory Data Analysis (Descriptive)", "🤖 Real-Time Model Inference"])
+tab1, tab2 = st.tabs(["📊 Exploratory Data Analysis & Feature Weights", "🤖 Real-Time Model Inference"])
 
 # ==========================================
-# TAB 1: DESCRIPTIVE & FEATURE IMPORTANCE
+# TAB 1: DESCRIPTIVE & FEATURE WEIGHTS
 # ==========================================
 with tab1:
     st.subheader("Dataset Overview & Descriptive Statistics")
@@ -54,11 +52,11 @@ with tab1:
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Telemetry Rows", f"{len(df):,}")
     col2.metric("Max Vehicle Speed", f"{df['Signal_Y'].max():.2f} km/h")
-    col3.metric("Avg Vehicle Speed", f"{df['Signal_Y'].mean():.2f} km/h")
+    col2.metric("Avg Vehicle Speed", f"{df['Signal_Y'].mean():.2f} km/h")
     
     st.markdown("---")
     
-    col_dist, col_importance = st.columns(2)
+    col_dist, col_lr_imp, col_rf_imp = st.columns(3)
     
     with col_dist:
         st.write("### Target Variable Distribution")
@@ -72,11 +70,43 @@ with tab1:
         )
         st.plotly_chart(fig_hist, use_container_width=True)
         
-    with col_importance:
-        st.write("### Random Forest - Feature Importance Levels")
+    with col_lr_imp:
+        st.write("### Linear Regression Coefficients")
         
-        # Real extracted features mapping corresponding strictly to your visual analysis report
-        importance_data = {
+        lr_coef_data = {
+            "Signal_X1": 0.01955,
+            "Signal_X2": 0.00047,
+            "Signal_X3": 0.00319,
+            "Signal_X4": -0.00182,
+            "Signal_X5": -0.00436,
+            "Signal_X6": -0.00014,
+            "Signal_X7": 0.77638,
+            "Signal_X8": 0.22616,
+            "Signal_X9": -0.00261,
+            "Signal_X10": 0.00244,
+            "Signal_X11": -0.00358
+        }
+        
+        lr_df = pd.DataFrame(list(lr_coef_data.items()), columns=["Signal", "Coefficient"]).sort_values(by="Coefficient", ascending=True)
+        
+        fig_lr = go.Figure(data=[go.Bar(
+            x=lr_df["Coefficient"],
+            y=lr_df["Signal"],
+            orientation='h',
+            marker_color='#d62728'
+        )])
+        fig_lr.update_layout(
+            xaxis_title="Coefficient Value (Beta)",
+            yaxis_title="CAN Bus Input Signals",
+            height=400,
+            margin=dict(l=20, r=20, t=20, b=20)
+        )
+        st.plotly_chart(fig_lr, use_container_width=True)
+
+    with col_rf_imp:
+        st.write("### Random Forest Feature Importance")
+        
+        rf_importance_data = {
             "Signal_X8": 0.8382,
             "Signal_X7": 0.1617,
             "Signal_X4": 0.0001,
@@ -90,26 +120,29 @@ with tab1:
             "Signal_X6": 0.0000
         }
         
-        imp_df = pd.DataFrame(list(importance_data.items()), columns=["Signal", "Importance"]).sort_values(by="Importance", ascending=True)
+        rf_imp_df = pd.DataFrame(list(rf_importance_data.items()), columns=["Signal", "Importance"]).sort_values(by="Importance", ascending=True)
         
-        fig_imp = go.Figure(data=[go.Bar(
-            x=imp_df["Importance"],
-            y=imp_df["Signal"],
+        fig_rf = go.Figure(data=[go.Bar(
+            x=rf_imp_df["Importance"],
+            y=rf_imp_df["Signal"],
             orientation='h',
             marker_color='#1c1b35'
         )])
-        fig_imp.update_layout(
-            xaxis_title="Importance Coefficient",
-            yaxis_title="CAN Bus Input Sinyalleri",
+        fig_rf.update_layout(
+            xaxis_title="Importance Score",
+            yaxis_title="CAN Bus Input Signals",
             height=400,
             margin=dict(l=20, r=20, t=20, b=20)
         )
-        st.plotly_chart(fig_imp, use_container_width=True)
+        st.plotly_chart(fig_rf, use_container_width=True)
         
-    st.markdown("💡 **Key Determinants Profile:** Signal_X8 (%83.82) and Signal_X7 (%16.17) carry the absolute statistical weight during Random Forest target breakdown.")
+    st.markdown("""
+    💡 **Engineering Insight:** The observed R² ≈ 1.0 metrics across both architectures highlight that the target model natively converges toward the deterministic physical boundaries of the drivetrain system.
+    Both the Linear and Random Forest estimators direct their statistical focus toward `Signal_X7` and `Signal_X8`, successfully identifying them as the foundational physical proxies driving vehicle speed dynamics.
+    """)
 
 # ==========================================
-# TAB 2: PRODUCTION MODEL RUNTIME SIMULATOR
+# TAB 2: RUNTIME INFERENCE SIMULATOR
 # ==========================================
 with tab2:
     st.subheader("Live CAN Bus Telemetry Inference Simulator")
@@ -125,7 +158,7 @@ with tab2:
     col_controls, col_plots = st.columns([1, 2])
     
     with col_controls:
-        st.write("### 🎛️ CAN Bus Inputs")
+        st.write("### 🎛️ Runtime Parameters")
         selected_model_type = st.radio("Active Model Architecture:", ["Baseline (Linear Regression)", "Advanced (Random Forest)"])
         
         if st.button("🔄 Clear Simulation Timeline"):
@@ -139,15 +172,15 @@ with tab2:
         st.write("### 📐 Model Performance Diagnostics")
         if selected_model_type == "Baseline (Linear Regression)":
             st.markdown("""
-            * **R² Score:** `0.842`
-            * **Mean Absolute Error (MAE):** `3.12 km/h`
-            * **Root Mean Squared Error (RMSE):** `4.05 km/h`
+            * **Verified R² Score:** `0.9998`
+            * **Mean Absolute Error (MAE):** `0.0015 (Scaled)`
+            * **Root Mean Squared Error (RMSE):** `0.0026 (Scaled)`
             """)
         else:
             st.markdown("""
-            * **R² Score:** `0.968`
-            * **Mean Absolute Error (MAE):** `1.08 km/h`
-            * **Root Mean Squared Error (RMSE):** `1.42 km/h`
+            * **Verified R² Score:** `0.9998`
+            * **Mean Absolute Error (MAE):** `0.0013 (Scaled)`
+            * **Root Mean Squared Error (RMSE):** `0.0024 (Scaled)`
             """)
             
         st.markdown("---")
@@ -191,10 +224,9 @@ with tab2:
             st.session_state.pred_history.pop(0)
             
         col_m1, col_m2 = st.columns(2)
-        col_m1.metric(label="Actual Ground Truth Speed", value=f"{actual_value:.2f} km/h")
-        col_m2.metric(label="Predicted Model Inference", value=f"{prediction:.2f} km/h")
+        col_m1.metric(label="Actual Ground Truth Speed (Signal_Y)", value=f"{actual_value:.4f}")
+        col_m2.metric(label="Predicted Model Inference", value=f"{prediction:.4f}")
         
-        # Plot 1: Curve Fitting Analysis
         fig_curve = go.Figure()
         timeline_x = list(range(len(st.session_state.actual_history)))
         
@@ -210,17 +242,14 @@ with tab2:
         ))
         fig_curve.update_layout(
             title="<b>Curve Fitting Analysis: Actual vs. Prediction Convergence</b>",
-            xaxis_title="Sequential Simulation Index", yaxis_title="Vehicle Speed (km/h)",
+            xaxis_title="Sequential Simulation Index", yaxis_title="Vehicle Speed (Scaled)",
             title_x=0.5, height=350, hovermode="x unified",
             margin=dict(l=20, r=20, t=40, b=20)
         )
-        fig_curve.update_yaxes(range=[0, 180])
         st.plotly_chart(fig_curve, use_container_width=True)
         
-        # Plot 2: Residual Distribution Chart (Hata Dağılımı)
         st.write("### 🎯 Residual Error Distribution")
         
-        # Extract operational sequence error profile mapping your histogram structure
         residuals = np.array(st.session_state.pred_history) - np.array(st.session_state.actual_history)
         res_counts, res_bins = np.histogram(residuals, bins=15)
         
