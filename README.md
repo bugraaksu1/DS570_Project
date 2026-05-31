@@ -39,7 +39,7 @@ Based on empirical tree-based splits, the system identifies the dominant cross-s
 
 ---
 
-## 📈 Model Performance & Evaluation Results
+## Model Performance & Evaluation Results
 The estimators achieved the following cross-validation diagnostics under baseline telemetry configurations:
 
 | Model Architecture | $R^2$ Score | Mean Absolute Error (MAE) | Root Mean Squared Error (RMSE) |
@@ -77,37 +77,73 @@ DS570_Project/
     ├── __init__.py            # Explicitly designates directory as a importable Python package
     └── preprocessing.py       # Production-ready data ingestion, string cleaning, and split logic
 
-## Deployment & Local Setup Guide via Docker
+```
 
+---
+
+## Identified Weaknesses & Future Improvements
+
+In alignment with rigorous engineering practices, the following boundaries and architectural bottlenecks have been identified for future optimization loops:
+
+* **Temporal Blindness:** The current static regression models evaluate each telemetry frame independently. They lack sequential memory, making them susceptible to error propagation during prolonged signal blackouts.
+* *Improvement:* Integrating Recurrent Neural Networks (RNNs) or **LSTM (Long Short-Term Memory)** networks to track historical vehicle states across time indices.
+
+
+* **Edge-Case Volatility:** While the ensemble model excels within standard operational limits, sudden, extreme telemetry spikes (e.g., ABS triggering on ice or wheel slip) can temporarily distort curve fitting convergence.
+* *Improvement:* Introducing Kalman Filtering or automated anomaly detection layers to isolate sensor noise prior to model inference.
+
+
+
+---
+
+## Deployment & Local Setup Guide via Docker
 
 This system is completely containerized via Docker to guarantee absolute environment replication across different operating systems, eliminating local python configuration dependencies.
 
+###  Step-by-Step Execution Instructions
 
-
-### Step-by-Step Execution Instructions
 #### 1. Clone the Repository
 
 Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project workspace:
 
+```bash
+git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
+cd DS570_Project
 
-
-    git clone [https://github.com/bugraaksu1/DS570_Project.git](https://github.com/bugraaksu1/DS570_Project.git)
-
-  
-
-    cd DS570_Project
-
+```
 
 #### 2. Build the Docker Image
 
-    docker build -t vehicle-speed-dashboard .
+Compile the isolated environment, including the Python runtime layer and dependencies, by executing:
 
+```bash
+docker build --no-cache -t vehicle-speed-dashboard .
+
+```
+
+*(Ensure the trailing dot `.` is included so Docker detects the local context).*
 
 #### 3. Run the Container
 
-    docker run -p 8501:8501 vehicle-speed-dashboard
+Spin up the interactive telemetry simulation server:
 
+```bash
+docker run -p 8501:8501 vehicle-speed-dashboard
+
+```
 
 #### 4. Access the Live Dashboard
 
-    http://localhost:8501
+Once initialized, open any modern web browser and navigate to:
+👉 **[http://localhost:8501](https://www.google.com/search?q=http://localhost:8501)**
+
+* **Tab 1 (Exploratory Data Analysis):** Real-time data profiling, feature distributions, and Random Forest feature importance charts.
+* **Tab 2 (Real-Time Model Inference):** Interactive sliders to manipulate 11 CAN Bus signals concurrently, featuring dual-curve fitting tracking and live residual error tracking.
+
+### 🛑 Stopping the Simulation
+
+To safely terminate the container instance, return to your terminal window and press **`Ctrl + C`**.
+
+```
+
+```
