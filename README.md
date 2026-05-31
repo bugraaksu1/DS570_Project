@@ -117,7 +117,7 @@ cd DS570_Project
 Compile the isolated environment, including the Python runtime layer and dependencies, by executing:
 
 ```bash
-    docker build -t vehicle-speed-dashboard .
+docker build -t vehicle-speed-dashboard .
 
 ```
 
