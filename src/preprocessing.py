@@ -2,10 +2,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 def prepare_and_split_data(df, target_col='Signal_Y', test_size=0.2):
-    """
-    Splits the dataframe chronologically to maintain time-series integrity
-    and prevent data leakage.
-    """
     print(f"[INFO] Splitting dataset chronologically (target: {target_col})...")
 
     if target_col not in df.columns:
@@ -16,9 +12,7 @@ def prepare_and_split_data(df, target_col='Signal_Y', test_size=0.2):
     y = df[target_col]
 
     # shuffle=False is critical for time-series data to preserve the order
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, shuffle=False
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
 
     print(f"[SUCCESS] Split complete.")
     print(f"Train set: {X_train.shape[0]} rows | Test set: {X_test.shape[0]} rows")

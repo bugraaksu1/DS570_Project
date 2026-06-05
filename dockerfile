@@ -1,21 +1,21 @@
-# 1. Use a lightweight, stable, and modern Python 3.12 image
+# 1. This project uses a lightweight, stable, and modern Python 3.12 image
 FROM python:3.12-slim
 
-# 2. Create the working directory inside the container
+# 2. Creates the working directory inside the container
 WORKDIR /workspace
 
-# 3. Update Linux system dependencies (tools required for Plotly and GCC)
+# 3. Updates Linux system dependencies (tools required for Plotly and GCC)
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Copy only requirements.txt first and install the libraries
+# 4. Copies only requirements.txt first and install the libraries
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copy all project source and asset folders into the container
+# 5. Copies all project source and asset folders into the container
 COPY app/ ./app/
 COPY src/ ./src/
 COPY models/ ./models/
