@@ -9,7 +9,7 @@ An end-to-end data science and MLOps pipeline: data processing, feature analysis
 
 ## Problem Statement
 
-In automotive E/E architectures, sensor signals on vehicle networks (CAN Bus, CAN-FD, LIN) can drop out due to hardware failures, wiring faults, or attacks such as spoofing and DoS. When the vehicle speed sensor fails, dependent ADAS and chassis modules lose critical telemetry.
+In automotive E/E architectures, sensor signals on vehicle networks (CAN Bus, CAN-FD, LIN, ETH, Flexray) can drop out due to hardware failures, wiring faults, or attacks such as spoofing and DoS. When the vehicle speed sensor fails, dependent ADAS and chassis modules lose critical telemetry.
 
 **Objective:** a real-time ML fallback that reconstructs the lost `Vehicle_Speed` (`Signal_Y`) from the remaining active signals — turning a *fail-silent* outage into a *fail-operational* degraded mode.
 
