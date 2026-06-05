@@ -4,16 +4,12 @@ DS570 Term Project — AI-Assisted Signal Regeneration in Critical CAN Bus Inter
 """
 
 from pathlib import Path
-
 import joblib
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-# ------------------------------------------------------------------
-# Configuration
-# ------------------------------------------------------------------
 DATA_LOCAL_PATH = Path("data/Finalized_Dataset.csv")
 DATA_GITHUB_URL = (
     "https://raw.githubusercontent.com/bugraaksu1/DS570_Project/main/"
