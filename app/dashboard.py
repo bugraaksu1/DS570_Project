@@ -18,14 +18,14 @@ DATA_LOCAL_PATH = Path("data/Finalized_Dataset.csv")
 DATA_GITHUB_URL = (
     "https://raw.githubusercontent.com/bugraaksu1/DS570_Project/main/"
     "data/Finalized_Dataset.csv"
-)  # public anchor — adjust if the repo path differs
+)  # remote fallback if the local file is missing
 
 LINEAR_MODEL_PATH = "models/linear_model.joblib"
 ADVANCED_MODEL_PATH = "models/advanced_model.joblib"
 
 FEATURE_COLS = [f"Signal_X{i}" for i in range(1, 12)]
 TARGET_COL = "Signal_Y"
-TEST_SIZE = 0.2  # must match preprocessing.py (shuffle=False, test_size=0.2)
+TEST_SIZE = 0.2  # same split ratio as training (chronological, shuffle=False)
 HISTORY_WINDOW = 30
 
 st.set_page_config(page_title="Vehicle Speed ML Dashboard", layout="wide")
@@ -55,6 +55,12 @@ st.markdown(
 # ------------------------------------------------------------------
 @st.cache_data
 def load_dataset() -> pd.DataFrame:
+    """Load the real telemetry dataset.
+
+    Tries the local file first (Docker image ships it), then falls back to the
+    public GitHub anchor. `sep=None` + python engine auto-detects comma vs
+    semicolon delimiters, mirroring src/preprocessing.py.
+    """
     source = DATA_LOCAL_PATH if DATA_LOCAL_PATH.exists() else DATA_GITHUB_URL
     df = pd.read_csv(source, sep=None, engine="python")
 
@@ -62,9 +68,7 @@ def load_dataset() -> pd.DataFrame:
     if missing:
         raise ValueError(f"Dataset is missing expected columns: {missing}")
 
-    # Robust numeric coercion: locale-exported CSVs may use a decimal COMMA
-    # (e.g. "0,8423"), which pandas parses as strings. Normalize to dot and
-    # force every expected column to float.
+    # CSV is exported with decimal commas (e.g. "0,8423") -> convert to float
     expected = FEATURE_COLS + [TARGET_COL]
     for col in expected:
         if not pd.api.types.is_numeric_dtype(df[col]):
@@ -91,7 +95,7 @@ def load_ml_models():
 
 @st.cache_data
 def compute_test_metrics(_model, X: pd.DataFrame, y: pd.Series, cache_key: str):
-    """R², MAE, RMSE on the chronological test split — computed, not hardcoded."""
+    """R2, MAE, RMSE of a model on the chronological test split."""
     preds = _model.predict(X)
     residuals = y.to_numpy() - preds
     ss_res = float(np.sum(residuals**2))
@@ -104,7 +108,7 @@ def compute_test_metrics(_model, X: pd.DataFrame, y: pd.Series, cache_key: str):
 
 try:
     df = load_dataset()
-except Exception as exc:  # dataset unreachable → fail loudly, never fake data
+except Exception as exc:
     st.error(
         "Dataset could not be loaded. Place `Finalized_Dataset.csv` under "
         f"`{DATA_LOCAL_PATH}` or check the GitHub anchor URL.\n\nDetails: {exc}"
@@ -126,12 +130,10 @@ test_df = df.iloc[split_idx:].reset_index(drop=True)
 X_test, y_test = test_df[FEATURE_COLS], test_df[TARGET_COL]
 
 
-# ------------------------------------------------------------------
-# Slider/frame helpers (used as button callbacks — they run BEFORE the
-# widgets render, which is the only safe point to write slider state)
-# ------------------------------------------------------------------
+# Button callbacks: callbacks run before widgets render, so writing
+# slider session_state here is safe.
 def _load_frame_into_sliders(frame_index: int) -> None:
-    """Write the telemetry values of a test-region frame into the slider states."""
+    """Copy one test-region frame into the slider states."""
     frame_index = int(min(max(frame_index, 0), len(test_df) - 1))
     for col_name in FEATURE_COLS:
         st.session_state[f"slider_{col_name}"] = float(
@@ -140,7 +142,7 @@ def _load_frame_into_sliders(frame_index: int) -> None:
 
 
 def _advance_frame(n_frames: int) -> None:
-    """Step to the next chronological test frame and load its telemetry."""
+    """Move to the next test frame and load its telemetry."""
     st.session_state.timestamp_counter = min(
         st.session_state.timestamp_counter + 1, n_frames - 1
     )
@@ -250,9 +252,116 @@ with tab1:
         💡 **Engineering Insight:** Both architectures concentrate their statistical
         weight on `Signal_X7` (WhlSpd) and `Signal_X8` (Inverter RPM) — the two direct
         physical proxies of vehicle speed. The remaining nine channels carry redundant
-        information that becomes critical under sensor loss (see the ablation study).
+        information that becomes critical under sensor loss — **importance ≠ capability**,
+        as the ablation study below demonstrates.
         """
     )
+
+    # Ablation study: evaluate the per-scenario retrained models live
+    st.markdown("---")
+    st.subheader("Sensor-Loss Ablation Study (FuSa Redundancy)")
+
+    ABLATION_SCENARIOS = [
+        ("Drop X7", ["Signal_X7"], "drop_x7"),
+        ("Drop X8", ["Signal_X8"], "drop_x8"),
+        ("Drop X7 + X8", ["Signal_X7", "Signal_X8"], "drop_x7x8"),
+    ]
+
+    @st.cache_data
+    def compute_ablation_results():
+        """Evaluate baseline + retrained ablation models on the test split."""
+        rows = []
+        for label, mdl in [("Linear Regression", linear_model),
+                           ("Random Forest", advanced_model)]:
+            p = mdl.predict(X_test)
+            res = y_test.to_numpy() - p
+            rows.append(dict(
+                Scenario="Baseline (all 11)", Model=label,
+                R2=1.0 - float(np.sum(res**2)) / float(np.sum((y_test - y_test.mean())**2)),
+                MAE=float(np.mean(np.abs(res))) * 1e3,
+            ))
+        try:
+            crisis_imp = None
+            for name, drop, tag in ABLATION_SCENARIOS:
+                feats = [f for f in FEATURE_COLS if f not in drop]
+                for label, prefix in [("Linear Regression", "linear_model"),
+                                      ("Random Forest", "advanced_model")]:
+                    mdl = joblib.load(f"models/{prefix}_{tag}.joblib")
+                    p = mdl.predict(X_test[feats])
+                    res = y_test.to_numpy() - p
+                    rows.append(dict(
+                        Scenario=name, Model=label,
+                        R2=1.0 - float(np.sum(res**2)) / float(np.sum((y_test - y_test.mean())**2)),
+                        MAE=float(np.mean(np.abs(res))) * 1e3,
+                    ))
+                    if tag == "drop_x7x8" and prefix == "advanced_model":
+                        crisis_imp = pd.Series(
+                            mdl.feature_importances_, index=list(mdl.feature_names_in_)
+                        ).sort_values(ascending=False)
+        except FileNotFoundError:
+            return None, None
+        out = pd.DataFrame(rows)
+        base = out[out.Scenario == "Baseline (all 11)"].set_index("Model")["MAE"]
+        out["MAE multiplier"] = out.apply(lambda r: r["MAE"] / base[r["Model"]], axis=1)
+        return out, crisis_imp
+
+    ablation_df, crisis_imp = compute_ablation_results()
+
+    if ablation_df is None:
+        st.info(
+            "Ablation artifacts (`models/*_drop_*.joblib`) not found. Run "
+            "`notebooks/DS570_Model_Experiments.ipynb` to generate them."
+        )
+    else:
+        st.caption(
+            "Both models **retrained from scratch** under four sensor-availability "
+            "scenarios; all metrics computed live on the chronological test split."
+        )
+        col_abl_chart, col_abl_detail = st.columns([3, 2])
+
+        scenario_order = ["Baseline (all 11)"] + [s[0] for s in ABLATION_SCENARIOS]
+        with col_abl_chart:
+            fig_abl = go.Figure()
+            for label, color in [("Linear Regression", "#8A94A6"),
+                                 ("Random Forest", "#06D6A0")]:
+                sub = ablation_df[ablation_df.Model == label].set_index("Scenario")
+                sub = sub.reindex(scenario_order)
+                fig_abl.add_trace(go.Bar(
+                    x=scenario_order, y=sub["R2"], name=label, marker_color=color,
+                    text=[f"{v:.2f}" for v in sub["R2"]], textposition="outside",
+                ))
+            fig_abl.update_layout(
+                title="<b>Test R² Under Sensor-Loss Conditions</b>",
+                yaxis_title="Test R²", yaxis_range=[0, 1.12],
+                barmode="group", title_x=0.5, height=380,
+                margin=dict(l=20, r=20, t=40, b=20),
+                legend=dict(orientation="h", y=-0.15),
+            )
+            st.plotly_chart(fig_abl, use_container_width=True)
+
+        with col_abl_detail:
+            st.write("**Degradation table** (MAE multiplier vs. baseline)")
+            piv = ablation_df.pivot(index="Scenario", columns="Model",
+                                    values="MAE multiplier").reindex(scenario_order)
+            st.dataframe(piv.style.format("{:.1f}×"), use_container_width=True)
+            if crisis_imp is not None:
+                st.write("**Crisis-model importance redistribution** (no X7/X8)")
+                st.caption(
+                    f"`{crisis_imp.index[0]}` takes over **{crisis_imp.iloc[0]:.1%}** "
+                    "of the importance — a channel that was ~0% under normal "
+                    "conditions becomes the backbone of the backup model."
+                )
+
+        crisis = ablation_df[ablation_df.Scenario == "Drop X7 + X8"].set_index("Model")
+        st.markdown(
+            f"""
+            🛡️ **FuSa Verdict:** Single-sensor loss is harmless — X7/X8 are mutual
+            physical proxies. When **both** fail, Linear Regression collapses to noise
+            (R² = {crisis.loc['Linear Regression', 'R2']:.2f}) while Random Forest
+            degrades gracefully (R² = {crisis.loc['Random Forest', 'R2']:.2f}):
+            *fail-operational* instead of *fail-silent*.
+            """
+        )
 
 # ==========================================
 # TAB 2: RUNTIME INFERENCE SIMULATOR
@@ -303,17 +412,9 @@ with tab2:
 
         st.markdown("---")
 
-        # ------------------------------------------------------------------
-        # Telemetry sliders — STABLE widget identity.
-        #
-        # Design note: sliders use fixed `key`s and never receive a changing
-        # `value=` parameter. Streamlit hashes label/min/max/value/step into
-        # the widget identity; a changing default would create a "new" widget
-        # on every rerun and discard the user's selection (handle jumping).
-        # Frame advancement is therefore an EXPLICIT action: the button below
-        # loads the next test-region frame into the sliders via session_state.
-        # Moving a slider only triggers what-if inference — time stands still.
-        # ------------------------------------------------------------------
+        # Sliders use fixed keys and no value= param: if the default value
+        # changed every rerun, Streamlit would treat it as a new widget and
+        # reset the handle. Frames advance only via the Next Frame button.
         current_index = min(st.session_state.timestamp_counter, len(test_df) - 1)
 
         # Initialize slider states once (first run) from frame 0
@@ -354,8 +455,7 @@ with tab2:
         prediction = float(active_model.predict(input_df)[0])
         actual_value = float(test_df.loc[current_index, TARGET_COL])
 
-        # Record one history point per FRAME (not per rerun) — slider tweaks
-        # update the prediction for the current frame in place.
+        # One history point per frame; slider tweaks update the last point.
         if st.session_state.get("last_recorded_frame") != current_index:
             st.session_state.actual_history.append(actual_value)
             st.session_state.pred_history.append(prediction)
@@ -423,3 +523,4 @@ with tab2:
             margin=dict(l=20, r=20, t=40, b=20),
         )
         st.plotly_chart(fig_res, use_container_width=True)
+
