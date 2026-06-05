@@ -7,23 +7,17 @@ An end-to-end data science and MLOps pipeline: data processing, feature analysis
 
 ---
 
-## Project Overview & Problem Statement
+## Problem Statement
 
-In modern automotive Electrical/Electronic (E/E) architectures, critical sensor signals transmitted over vehicle networks (CAN Bus, CAN-FD, LIN) are vulnerable to temporary or permanent interruptions — physical hardware failures, wiring harness short circuits, or malicious interventions such as spoofing and Denial-of-Service attacks.
+In automotive E/E architectures, sensor signals on vehicle networks (CAN Bus, CAN-FD, LIN) can drop out due to hardware failures, wiring faults, or attacks such as spoofing and DoS. When the vehicle speed sensor fails, dependent ADAS and chassis modules lose critical telemetry.
 
-When a primary sensor such as the vehicle speed sensor fails, dependent ADAS modules and chassis control units lose critical telemetry, compromising passenger safety.
-
-**Objective:** Implement an intelligent, real-time signal fallback mechanism. By exploiting correlations among the remaining active network signals, machine learning estimators reconstruct the lost `Vehicle_Speed` (`Signal_Y`) telemetry at runtime — turning a *fail-silent* sensor outage into a *fail-operational* degraded mode.
+**Objective:** a real-time ML fallback that reconstructs the lost `Vehicle_Speed` (`Signal_Y`) from the remaining active signals — turning a *fail-silent* outage into a *fail-operational* degraded mode.
 
 ---
 
-## Dataset & Proprietary Safety (NDA Compliance)
+## Dataset
 
-The data is derived from real CAN Bus logs captured during vehicle field tests: **104,840 frames** resampled on a 10 ms grid. To adhere to corporate Non-Disclosure Agreements, rigorous sanitization is enforced:
-
-* **Signal masking (DBC independence):** proprietary CAN IDs, message frames, and database signal names are removed. Features are generalized as `Signal_X1` … `Signal_X11`; the target velocity is `Signal_Y`.
-* **Mathematical anonymization:** all channels are MinMax-scaled to **[0, 1]**, concealing physical operating envelopes. Error metrics are reported in the scaled domain; a conservative physical bound is given below.
-* **Automated ingestion:** the anonymized dataset ships with the repository and loads automatically when the container starts — no manual download, no account, no user intervention. The loader is locale-robust (handles semicolon-delimited, decimal-comma CSV exports) and falls back to the public GitHub anchor if the local file is absent.
+Real CAN Bus logs from vehic
 
 ---
 
@@ -60,52 +54,34 @@ DS570_Project/
 
 ---
 
-## Methodology & Model Architecture
+## Models
 
-Two model classes are compared deliberately — one as a physically principled baseline, one for fault tolerance:
+1. **Baseline — Linear Regression.** Vehicle speed is physically linear in its proxies (V = r·ω); a linear model is the principled, interpretable reference.
+2. **Advanced — Random Forest** (`n_estimators=50, max_depth=12, random_state=42`). Captures the non-linear couplings between redundant channels and the target — the property that matters under sensor loss.
 
-1. **Baseline — Linear Regression.** Vehicle speed is physically linear in its proxies (V = r·ω), so a 12-parameter linear model is the principled reference point: interpretable, deterministic, trains in seconds.
-2. **Advanced — Random Forest Regressor** (`n_estimators=50, max_depth=12, bootstrap=True, random_state=42`). The ensemble's threshold-based splits capture the **non-linear, conditional couplings** between the redundant channels and the target — the property that matters when the primary proxies disappear.
-
-**The Physical Proxy Principle.** Trained independently, both architectures concentrate on the same two channels — `Signal_X7` (wheel speed) and `Signal_X8` (inverter RPM), the direct physical proxies of vehicle speed (RF importance: 86.3% / 13.7%). ML output agreeing with domain physics validates that the models learned mechanism, not spurious correlation.
+Both models independently concentrate on `Signal_X7` (wheel speed) and `Signal_X8` (inverter RPM), the two physical proxies of vehicle speed — consistent with vehicle dynamics.
 
 ---
 
 ## Evaluation
 
-### Chronological split — no temporal leakage
-
-Frames 10 ms apart are nearly identical; a shuffled split would scatter near-duplicates across train and test, leaking the future into training and inflating scores. The split is therefore strictly chronological (`shuffle=False`): the first 80% (83,872 frames) trains the models, the final 20% (20,968 frames — the *unseen future*) tests them, mirroring the production scenario.
-
-### Hold-out test performance
+The train/test split is strictly **chronological** (`shuffle=False`, 80/20): frames 10 ms apart are nearly identical, so a shuffled split would leak the future into training. Stability was additionally confirmed with expanding-window time-series cross-validation.
 
 | Model | R² | MAE (×10⁻³, scaled) | RMSE (×10⁻³, scaled) |
 | :--- | :---: | :---: | :---: |
 | Baseline (Linear Regression) | **0.9998** | 1.54 | 2.69 |
 | Advanced (Random Forest) | **0.9998** | **1.33** | **2.41** |
 
-*Physical scale:* the inverse MinMax transform bounds both models at **MAE ≤ 0.16 km/h and RMSE ≤ 0.27 km/h** — below typical speedometer display resolution. (Exact speed range withheld per NDA.)
+### Sensor-Loss Ablation Study (FuSa)
 
-### Bias–variance diagnostics
+Both models retrained under four sensor-availability scenarios:
 
-LR is structurally stable (test/train MAE ratio 1.31×, ΔR² ≈ 0.0002). RF's saturated depth-12 trees partially memorize the train set (ratio 2.96×), but bootstrap averaging across 50 decorrelated trees cancels the variance — ΔR² ≈ 0 and the absolute test error remains the lowest. Optimistic training error, no harmful overfitting.
-
-### Temporal cross-validation (expanding window)
-
-Classic k-fold is invalid for time series (temporal leakage), so a 5-fold `TimeSeriesSplit` expanding-window validation is used instead: train on the past, test on the immediate future, grow the window, repeat. Across all non-degenerate folds both models stay at R² = 0.999+, MAE 1.3–2.3×10⁻³ — the hold-out result is not a lucky split. One fold lands on a stationary segment (`Signal_Y ≡ 0`, zero target variance) where R² is undefined while MAE is near-perfect; this metric edge case is documented in the notebook (Section 6b).
-
----
-
-## Functional Safety (ISO 26262) — Sensor-Loss Ablation Study
-
-Feature importance says the 9 secondary channels contribute ~0% — but **importance ≠ capability**. Both models were retrained from scratch under four sensor-availability scenarios:
-
-| Scenario | LR — Test R² | RF — Test R² | LR — MAE mult. | RF — MAE mult. |
-| :--- | :---: | :---: | :---: | :---: |
-| Baseline (all 11) | 0.9998 | 0.9998 | 1.0× | 1.0× |
-| Drop X7 | 0.9998 | 0.9997 | 0.9× | 1.1× |
-| Drop X8 | 0.9997 | 0.9996 | 1.2× | 1.4× |
-| **Drop X7 + X8 (crisis)** | **0.04** | **0.97** | **72.2×** | **13.4×** |
+| Scenario | LR — Test R² | RF — Test R² |
+| :--- | :---: | :---: |
+| Baseline (all 11) | 0.9998 | 0.9998 |
+| Drop X7 | 0.9998 | 0.9997 |
+| Drop X8 | 0.9997 | 0.9996 |
+| **Drop X7 + X8 (crisis)** | **0.04** | **0.97** |
 
 Single-sensor loss is harmless — X7 and X8 are mutual physical proxies. When **both** are lost (hardware failure / DoS), Linear Regression collapses to noise level, while Random Forest degrades gracefully: its splits rediscover the conditional physics of the redundant channels — importance redistributes onto `Signal_X11` (regen torque, **95.8%** in the crisis model), a signal that can only exist while the motor spins. This is the FuSa value of the pipeline: architectural redundancy for **limp-home** safety modes.
 
@@ -113,15 +89,10 @@ The per-scenario artifacts live in `models/*_drop_*.joblib`; the dashboard evalu
 
 ---
 
-## Interactive Dashboard
+## Dashboard
 
-The Streamlit app integrates exploratory views and model results:
-
-* **Tab 1 — Exploratory Data Analysis & Feature Weights:**
-  * Dataset overview (row counts, chronological split sizes, sampling grid) and target distribution.
-  * Side-by-side LR coefficients vs. RF feature importances — **extracted live from the `.joblib` artifacts, no hardcoded values.**
-  * **Sensor-Loss Ablation panel:** the four-scenario Test-R² chart, the MAE degradation table, and the crisis-model importance redistribution — all metrics computed at runtime from the per-scenario artifacts on the chronological test split. If the ablation artifacts are absent, the panel degrades to an informative message instead of crashing.
-* **Tab 2 — Real-Time Model Inference:** replays the *unseen* chronological test region frame by frame (`Next Frame` / `Reload Frame`), with runtime model switching (Baseline ↔ Advanced), live-computed test metrics, 11 what-if telemetry sliders, an actual-vs-prediction verification chart, and a live residual-distribution panel (unbiasedness check).
+* **Tab 1 — EDA & Feature Weights:** dataset overview, target distribution, LR coefficients vs. RF importances (read live from the model artifacts), and the ablation-study panel with metrics computed at runtime.
+* **Tab 2 — Real-Time Inference:** replays the unseen test region frame by frame, with runtime model switching, what-if telemetry sliders, an actual-vs-prediction chart, and a residual-distribution panel.
 
 ---
 
@@ -163,11 +134,6 @@ docker run -p 8501:8501 vehicle-speed-dashboard
 
 Once initialized, open any modern web browser and navigate to:
  **[http://localhost:8501](https://www.google.com/search?q=http://localhost:8501)**
-
-
-### Reproducibility
-
-All results are deterministic: fixed `random_state=42`, chronological split, pinned dependencies (`requirements.txt`, scikit-learn 1.8.0). Re-running `notebooks/DS570_Model_Experiments.ipynb` end-to-end regenerates **all eight model artifacts** and every number quoted above, bit-for-bit.
 
 ---
 
