@@ -125,21 +125,47 @@ The Streamlit app integrates exploratory views and model results:
 
 ---
 
-## Deployment via Docker
+##  Deployment & Local Setup Guide via Docker
+
+This system is completely containerized via Docker to guarantee absolute environment replication across different operating systems, eliminating local python configuration dependencies.
+
+###  Step-by-Step Execution Instructions
+
+#### 1. Clone the Repository
+
+Open a terminal (Git Bash, PowerShell, or Command Prompt) and pull the project workspace:
 
 ```bash
-# 1. Clone
 git clone https://github.com/bugraaksu1/DS570_Project.git
 cd DS570_Project
 
-# 2. Build (single command, no manual steps)
-docker build -t vehicle-speed-dashboard .
-
-# 3. Run
-docker run -p 8501:8501 vehicle-speed-dashboard
 ```
 
-Then open **http://localhost:8501** in a browser. Image build + app launch completes in a few minutes; data loads automatically at startup. Stop with `Ctrl + C`.
+#### 2. Build the Docker Image
+
+Compile the isolated environment, including the Python runtime layer and dependencies, by executing:
+
+```bash
+docker build -t vehicle-speed-dashboard .
+
+```
+
+*(Ensure the trailing dot `.` is included so Docker detects the local context).*
+
+#### 3. Run the Container
+
+Spin up the interactive telemetry simulation server:
+
+```bash
+docker run -p 8501:8501 vehicle-speed-dashboard
+
+```
+
+#### 4. Access the Live Dashboard
+
+Once initialized, open any modern web browser and navigate to:
+ **[http://localhost:8501](https://www.google.com/search?q=http://localhost:8501)**
+
 
 ### Reproducibility
 
