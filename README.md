@@ -17,7 +17,7 @@ In automotive E/E architectures, sensor signals on vehicle networks (CAN Bus, CA
 
 ## Dataset
 
-Real CAN Bus logs from vehic
+Real CAN Bus logs from vehicle field tests: **104,840 frames** on a 10 ms grid. For NDA compliance, proprietary CAN IDs and signal names are removed (features generalized as `Signal_X1…X11`) and all channels are MinMax-scaled to **[0, 1]**; metrics are therefore reported in the scaled domain. The dataset ships with the repository and loads automatically at container start — no manual download or account required.
 
 ---
 
